@@ -327,26 +327,30 @@ class Client:
 
             permissions = original.list_permissions()
             for p in permissions:
-                if p.get("deleted"):
+                # Share the new spreadsheet with the same permissions as the original
+                # but don't share it with the owner of the original spreadsheet as
+                # Google API rejects that with the error response:
+                #  APIError: [403]: The transferOwnership parameter must be enabled when the permission role is 'owner'.
+                if p.get("deleted") or p.get("role") == "owner":
                     continue
 
-                # .list_permissions() returns a list of permissions,
-                # even the folder permissions if the file is in a shared folder.
-                # We only want the permissions that are directly applied to the
-                # spreadsheet file, i.e. 'writer', 'commenter' and 'reader'.
-                perm_details = {
-                    p_details.get("permissionType"): p_details.get("inherited")
-                    for p_details in p.get("permissionDetails")
-                }
-                if p.get("role") in ("organizer", "fileOrganizer") and (
-                    perm_details.get("file") or perm_details.get("member")
-                ):
-                    continue
+                # .list_permissions() when used in shared drive returns a list
+                # of permissions, even the folder permissions if the file is in
+                # a shared folder. We only want the permissions that are directly
+                # applied to the spreadsheet file, i.e. 'writer', 'commenter' and 'reader'.
+                if p.get("permissionDetails"):
+                    perm_details = {
+                        p_details.get("permissionType"): p_details.get("inherited")
+                        for p_details in p.get("permissionDetails")
+                    }
+                    if p.get("role") in ("organizer", "fileOrganizer") and (
+                        perm_details.get("file") or perm_details.get("member")
+                    ):
+                        continue
 
                 # In case of domain type the domain extract the domain
                 # In case of user/group extract the emailAddress
                 # Otherwise use None for type 'Anyone'
-
                 email_or_domain = ""
                 if str(p["type"]) == "domain":
                     email_or_domain = str(p["domain"])
