@@ -73,6 +73,16 @@ class ClientTest(GspreadTest):
         self.assertEqual(original_metadata["sheets"], copy_metadata["sheets"])
 
     @pytest.mark.vcr()
+    def test_copy_in_shared_drive(self):
+        original_spreadsheet = self.spreadsheet
+        spreadsheet_copy = self.gc.copy(original_spreadsheet.id, copy_permissions=True)
+        self.assertIsInstance(spreadsheet_copy, gspread.Spreadsheet)
+
+        original_metadata = original_spreadsheet.fetch_sheet_metadata()
+        copy_metadata = spreadsheet_copy.fetch_sheet_metadata()
+        self.assertEqual(original_metadata["sheets"], copy_metadata["sheets"])
+
+    @pytest.mark.vcr()
     def test_import_csv(self):
         spreadsheet = self.spreadsheet
 
