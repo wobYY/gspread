@@ -543,7 +543,7 @@ class Spreadsheet:
         """
         return self.client.export(self.id, format)
 
-    def list_permissions(self) -> List[Dict[str, Union[str, bool]]]:
+    def list_permissions(self) -> List[Dict[str, Union[str, bool, List[Dict[str, Union[str, bool]]]]]]:
         """Lists the spreadsheet's permissions."""
         return self.client.list_permissions(self.id)
 
